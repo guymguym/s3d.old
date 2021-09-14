@@ -1,0 +1,21 @@
+[package]
+name = "s3d"
+version = "0.0.1-alpha"
+edition = "2018"
+license = "Apache-2.0"
+description = "S3 endpoint daemon written in rust, that can serve as a gateway to existing buckets or filesystems, cache for a remote buckets, merge buckets, lazy migration, test environments, and more."
+homepage = "https://github.com/guymguym/s3d"
+repository = "https://github.com/guymguym/s3d"
+keywords = ["s3", "endpoint", "object", "bucket", "storage"]
+categories = ["database-implementations", "filesystem", "web-programming::http-server"]
+authors = ["guymguym"]
+
+[badges]
+maintenance = { status = "experimental" }
+
+[dependencies]
+hyper = { version = "0.14", features = ["full"] }
+tokio = { version = "1", features = ["full"] }
+#aws-types = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.17-alpha", package = "aws-types" }
+#aws-config = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.17-alpha", package = "aws-config" }
+#aws-sdk-s3 = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.17-alpha", package = "aws-sdk-s3" }

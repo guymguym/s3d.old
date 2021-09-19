@@ -1,6 +1,8 @@
+# https://doc.rust-lang.org/cargo/reference/manifest.html
+
 [package]
 name = "s3d"
-version = "0.0.1-alpha"
+version = "0.0.1-alpha2"
 edition = "2018"
 license = "Apache-2.0"
 description = "S3 endpoint daemon written in rust, that can serve as a gateway to existing buckets or filesystems, cache for a remote buckets, merge buckets, lazy migration, test environments, and more."
@@ -13,9 +15,16 @@ authors = ["guymguym"]
 [badges]
 maintenance = { status = "experimental" }
 
+[profile.dev]
+panic = 'abort'
+
 [dependencies]
-hyper = { version = "0.14", features = ["full"] }
+
 tokio = { version = "1", features = ["full"] }
+hyper = { version = "0.14", features = ["full"] }
+
+async-trait = "0.1"
+
 #aws-types = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.17-alpha", package = "aws-types" }
 #aws-config = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.17-alpha", package = "aws-config" }
 #aws-sdk-s3 = { git = "https://github.com/awslabs/aws-sdk-rust", tag = "v0.0.17-alpha", package = "aws-sdk-s3" }

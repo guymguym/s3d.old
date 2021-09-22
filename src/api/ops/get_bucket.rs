@@ -1,6 +1,5 @@
 use crate::api::*;
-use crate::util::*;
-use hyper::{http::request::Parts, Body, Request, Response};
+use hyper::{Body, Request, Response};
 
 pub type Req = Request<Params>;
 pub type Res = Response<Reply>;
@@ -23,9 +22,11 @@ impl ReqParser for Req {
     /// Host: Bucket.s3.amazonaws.com
     /// x-amz-expected-bucket-owner: ExpectedBucketOwner
     /// ```
-    fn parse(parts: Parts, _body: Body, bucket: &str, _key: &str) -> Self {
-        // let qs = QueryStr::from_parts(&parts);
-        let params = Params { bucket: bucket.to_string() };
+    fn parse(req: HttpRequest, bucket: &str, _key: &str) -> Self {
+        let (parts, _) = req.into_parts();
+        let params = Params {
+            bucket: bucket.to_string(),
+        };
         Request::from_parts(parts, params)
     }
 }

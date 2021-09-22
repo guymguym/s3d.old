@@ -1,6 +1,5 @@
 use crate::api::*;
-use crate::util::*;
-use hyper::{http::request::Parts, Body, Request, Response};
+use hyper::{Body, Request, Response};
 
 pub type Req = Request<Params>;
 pub type Res = Response<Reply>;
@@ -63,8 +62,8 @@ impl ReqParser for Req {
     //
     // Body
     /// ```
-    fn parse(parts: Parts, body: Body, bucket: &str, key: &str) -> Self {
-        // let qs = QueryStr::from_parts(&parts);
+    fn parse(req: HttpRequest, bucket: &str, key: &str) -> Self {
+        let (parts, body) = req.into_parts();
         let params = Params {
             bucket: bucket.to_string(),
             key: key.to_string(),

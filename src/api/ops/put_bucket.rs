@@ -1,6 +1,5 @@
 use crate::api::*;
-use crate::util::*;
-use hyper::{http::request::Parts, Body, Request, Response};
+use hyper::{Body, Request, Response};
 
 pub type Req = Request<Params>;
 pub type Res = Response<Reply>;
@@ -34,7 +33,8 @@ impl ReqParser for Req {
     ///    <LocationConstraint>string</LocationConstraint>
     /// </CreateBucketConfiguration>
     /// ```    
-    fn parse(parts: Parts, _body: Body, bucket: &str, _key: &str) -> Self {
+    fn parse(req: HttpRequest, bucket: &str, _key: &str) -> Self {
+        let (parts, _) = req.into_parts();
         let qs = QueryStr::from_parts(&parts);
         let params = Params {
             bucket: bucket.to_string(),

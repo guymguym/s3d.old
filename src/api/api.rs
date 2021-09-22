@@ -1,10 +1,10 @@
 use crate::api::*;
 use async_trait::async_trait;
 
-/// BucketApi is an abstract API to an S3-like bucket service.
+/// ApiLayer is an abstract API to an S3-like object store.
 /// implementing this trait allows to extend the composable API's.
 #[async_trait]
-pub trait BucketApi
+pub trait ApiLayer
 where
     Self: Send + Sync,
 {
@@ -20,9 +20,6 @@ where
     async fn put_object(&self, req: put_object::Req) -> put_object::Ret;
     async fn delete_object(&self, req: delete_object::Req) -> delete_object::Ret;
 
-    // TODO: versioning
-    // async fn list_object_versions(&self, req: ListObjects::Req) -> ListObjects::Res;
-
     // TODO: multipart upload
     // async fn initiate_multipart_upload(&self, req: InitiateMultipartUpload::Req) -> InitiateMultipartUpload::Res;
     // async fn complete_multipart_upload(&self, req: CompleteMultipartUpload::Req) -> CompleteMultipartUpload::Res;
@@ -33,12 +30,9 @@ where
     // async fn get_objects(&self, req: GetObjects::Req) -> GetObjects::Res;
     // async fn put_objects(&self, req: PutObjects::Req) -> PutObjects::Res;
     // async fn delete_objects(&self, req: DeleteObjects::Req) -> DeleteObjects::Res;
-}
 
-#[derive(Debug, Clone)]
-pub struct ObjectRange {
-    pub start: Option<u64>,
-    pub end: Option<u64>,
+    // TODO: versioning
+    // async fn list_object_versions(&self, req: ListObjects::Req) -> ListObjects::Res;
 }
 
 #[derive(Debug, Clone)]
@@ -65,4 +59,10 @@ pub struct ObjectInfo {
 pub struct UserInfo {
     pub id: String,
     pub display_name: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct ObjectRange {
+    pub start: Option<u64>,
+    pub end: Option<u64>,
 }

@@ -9,17 +9,16 @@ use std::{
     sync::{Arc, RwLock},
 };
 
-#[derive(Debug, Clone)]
-pub struct BucketMem {
-    buckets_arc: BucketsArc,
-}
-
 type BucketsArc = Arc<RwLock<HashMap<String, BucketArc>>>;
 type BucketArc = Arc<RwLock<Bucket>>;
 type ObjectArc = Arc<RwLock<Object>>;
 
 #[derive(Debug, Clone)]
+pub struct MemLayer {
+    buckets_arc: BucketsArc,
+}
 
+#[derive(Debug, Clone)]
 struct Bucket {
     info: BucketInfo,
     objects: HashMap<String, ObjectArc>,
@@ -32,10 +31,10 @@ struct Object {
 }
 
 #[async_trait]
-impl BucketApi for BucketMem {
+impl ApiLayer for MemLayer {
     fn new() -> Self {
         let buckets_arc = Arc::new(RwLock::new(HashMap::new()));
-        BucketMem { buckets_arc }
+        MemLayer { buckets_arc }
     }
 
     async fn list_buckets(&self, _req: list_buckets::Req) -> list_buckets::Ret {
@@ -149,7 +148,11 @@ impl BucketApi for BucketMem {
         let object_rlock = object_arc.read().unwrap();
         Ok(get_object::Res::new(get_object::Reply {
             object: object_rlock.object.clone(),
-            body: Some(Body::from(object_rlock.buf.clone())),
+            body: if body.head_only {
+                None
+            } else {
+                Some(Body::from(object_rlock.buf.clone()))
+            },
         }))
     }
 
@@ -193,7 +196,7 @@ impl BucketApi for BucketMem {
     }
 }
 
-impl BucketMem {
+impl MemLayer {
     fn make_bucket_info(&self, bucket: &str) -> BucketInfo {
         BucketInfo {
             name: bucket.to_string(),

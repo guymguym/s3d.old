@@ -1,7 +1,6 @@
+use crate::api::*;
 use hyper::{http::request::Parts, Body, Request, Response};
 use std::collections::HashMap;
-
-use crate::api::S3Error;
 
 pub type HttpRequest = Request<Body>;
 pub type HttpResponse = Response<Body>;
@@ -9,7 +8,7 @@ pub type HttpResult = Result<HttpResponse, hyper::Error>;
 pub type SyncError = Box<dyn std::error::Error + Send + Sync>;
 
 pub trait ReqParser {
-    fn parse(parts: Parts, body: Body, bucket: &str, key: &str) -> Self;
+    fn parse(req: HttpRequest, bucket: &str, key: &str) -> Self;
 }
 
 pub trait ResWriter {

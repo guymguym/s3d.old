@@ -1,12 +1,30 @@
 use crate::api::*;
-use crate::layers::BucketMem;
-use crate::util::*;
+use crate::layers::*;
 use hyper::Method;
+use hyper::{
+    service::{make_service_fn, service_fn},
+    Server,
+};
 use tokio::sync::OnceCell;
+
+pub async fn serve() -> Result<(), SyncError> {
+    let addr = ([127, 0, 0, 1], 3000).into();
+    s3_init().await;
+    let server = Server::bind(&addr).serve(make_service_fn(|_| async {
+        Ok::<_, hyper::Error>(service_fn(s3_handler))
+    }));
+    println!("Listening on http://{}", addr);
+    server.await?;
+    Ok(())
+}
+
+type SRV = S3Server<MemLayer>;
+// type SRV = S3Server<MockLayer>;
+// type SRV = S3Server<S3Layer>;
 
 // keep the server alive statically
 // because we need it for the lifetime of the program
-static S3D: OnceCell<S3Server> = OnceCell::const_new();
+static S3D: OnceCell<SRV> = OnceCell::const_new();
 
 pub async fn s3_init() {
     S3D.set(S3Server::new()).unwrap();
@@ -16,26 +34,21 @@ pub async fn s3_handler(req: HttpRequest) -> HttpResult {
     S3D.get().unwrap().handler(req).await
 }
 
-type BA = BucketMem;
-
 #[derive(Debug)]
-pub struct S3Server {
-    bucket_api: BA,
+pub struct S3Server<API: ApiLayer> {
+    api: API,
 }
 
-impl S3Server {
-    pub fn new() -> S3Server {
-        S3Server {
-            bucket_api: BA::new(),
-        }
+impl<API: ApiLayer> S3Server<API> {
+    pub fn new() -> S3Server<API> {
+        S3Server { api: API::new() }
     }
 
     pub async fn handler(&self, req: HttpRequest) -> HttpResult {
-        let (parts, body) = req.into_parts();
-        let method = parts.method.to_owned();
-        let uri = parts.uri.to_owned();
+        let method = req.method().to_owned();
+        let uri = req.uri().to_owned();
 
-        println!("HTTP ==> {} {} {:?}", method, uri, parts.headers);
+        println!("HTTP ==> {} {} {:?}", method, uri, &req.headers());
 
         // path style addressing
         assert!(uri.path().starts_with("/"));
@@ -46,50 +59,50 @@ impl S3Server {
 
         let res: HttpResult = match op_match {
             LIST_BUCKETS => self
-                .bucket_api
-                .list_buckets(list_buckets::Req::parse(parts, body, bucket, key))
+                .api
+                .list_buckets(list_buckets::Req::parse(req, bucket, key))
                 .await
                 .write(),
 
             LIST_OBJECTS => self
-                .bucket_api
-                .list_objects(list_objects::Req::parse(parts, body, bucket, key))
+                .api
+                .list_objects(list_objects::Req::parse(req, bucket, key))
                 .await
                 .write(),
 
             GET_BUCKET => self
-                .bucket_api
-                .get_bucket(get_bucket::Req::parse(parts, body, bucket, key))
+                .api
+                .get_bucket(get_bucket::Req::parse(req, bucket, key))
                 .await
                 .write(),
 
             GET_OBJECT | HEAD_OBJECT => self
-                .bucket_api
-                .get_object(get_object::Req::parse(parts, body, bucket, key))
+                .api
+                .get_object(get_object::Req::parse(req, bucket, key))
                 .await
                 .write(),
 
             PUT_BUCKET => self
-                .bucket_api
-                .put_bucket(put_bucket::Req::parse(parts, body, bucket, key))
+                .api
+                .put_bucket(put_bucket::Req::parse(req, bucket, key))
                 .await
                 .write(),
 
             PUT_OBJECT => self
-                .bucket_api
-                .put_object(put_object::Req::parse(parts, body, bucket, key))
+                .api
+                .put_object(put_object::Req::parse(req, bucket, key))
                 .await
                 .write(),
 
             DELETE_BUCKET => self
-                .bucket_api
-                .delete_bucket(delete_bucket::Req::parse(parts, body, bucket, key))
+                .api
+                .delete_bucket(delete_bucket::Req::parse(req, bucket, key))
                 .await
                 .write(),
 
             DELETE_OBJECT => self
-                .bucket_api
-                .delete_object(delete_object::Req::parse(parts, body, bucket, key))
+                .api
+                .delete_object(delete_object::Req::parse(req, bucket, key))
                 .await
                 .write(),
 

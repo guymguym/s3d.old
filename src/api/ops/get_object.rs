@@ -1,6 +1,4 @@
 use crate::api::*;
-use crate::util::*;
-use hyper::http::request::Parts;
 use hyper::{Body, Method, Request, Response};
 
 pub type Req = Request<Params>;
@@ -53,7 +51,8 @@ impl ReqParser for Req {
     /// x-amz-request-payer: RequestPayer
     /// x-amz-expected-bucket-owner: ExpectedBucketOwner
     /// ```
-    fn parse(parts: Parts, _body: Body, bucket: &str, key: &str) -> Self {
+    fn parse(req: HttpRequest, bucket: &str, key: &str) -> Self {
+        let (parts, _) = req.into_parts();
         let qs = QueryStr::from_parts(&parts);
         let head_only = parts.method == Method::HEAD;
         // let range = ObjectRange::parse(qs.get("range"));
@@ -119,7 +118,7 @@ impl ResWriter for Res {
         res.headers_mut()
             .insert("Content-Length", r.object.size.to_string().parse().unwrap());
         res.headers_mut()
-            .insert("ETag", r.object.etag.parse().unwrap());
+            .insert("ETag", format!("\"{}\"", r.object.etag).parse().unwrap());
 
         res
     }

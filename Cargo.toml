@@ -2,7 +2,7 @@
 
 [package]
 name = "s3d"
-version = "0.0.1-alpha2"
+version = "0.0.1-alpha3"
 edition = "2018"
 license = "Apache-2.0"
 description = "S3 endpoint daemon written in rust, that can serve as a gateway to existing buckets or filesystems, cache for a remote buckets, merge buckets, lazy migration, test environments, and more."
